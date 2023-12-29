@@ -10,9 +10,11 @@ appEntryPoint{
 
 	std::wstring title = L"Test";
 
-	float z = 0.0f;
+	float z = 100.0f, wx = 800.0f, wy = 420.0f;
 
-	bool forward = 0;
+	bool forward = 0, forwardW = 0;
+
+	float angle = 10.0f;
 
 	gameApp::Game::setGameUpdate([&](float delta) {
 		wchar_t charBuffer[256];
@@ -88,12 +90,34 @@ appEntryPoint{
 			z = min(width, height);
 			forward = 1;
 		}
+		
+		if (forwardW) {
+			wx-= (100.0f * delta);
+			wy-= (100.0f * delta);
+		}
+		else {
+			wx+= (100.0f *delta);
+			wy+= (100.0f *delta);
+		}
 
+		if (wx <= 0 || wy <= 0) {
+			forwardW = 0;
+		}
+		else if (wx >= width || wy >= height) {
+			forwardW = 1;
+		}
 
 		gameApp::Renderer::DrawRect({ 800, 420, 120, 100 }, { 0, 255, 255 });
 		gameApp::Renderer::DrawLine(40, 100, 240, 300, { 0, 255, 0});
-		gameApp::Renderer::DrawCircle(80, int(100.0f + z), int(100.0f + z), { 255, 0, 0});
+		gameApp::Renderer::DrawCircle(80, int(z), int(z), { 255, 0, 0});
 		gameApp::Renderer::FillCircle(50, int(x + 0.5f), int(y + 0.5f), { 255, 255, 255 });
+
+		gameApp::Renderer::DrawRectRotated({ int(wx), int(wy), 120, 100 }, { 52, 71, 4 }, int(angle));
+
+		gameApp::Renderer::FillRectRotated({ 100,100,120,100 }, { 0,0,0 }, int(angle));
+		gameApp::Renderer::DrawRectRotated({ 100,100,120,100 }, { 255,255,255 }, int(angle));
+
+		angle += 100.0f * delta;
 
 		gameApp::Input::Position pos = gameApp::Input::getMousePosition();
 

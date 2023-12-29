@@ -1,4 +1,5 @@
 #include "render.h"
+#include <math.h>
 
 namespace gameApp {
 	void Renderer::SetPixel(int x, int y, const RGBColor& color) {
@@ -108,6 +109,10 @@ namespace gameApp {
 		BitmapBuffer& buffer = getInstance().buffer;
 
 		if (!buffer.memory) {
+			return;
+		}
+
+		if (width == 0 || height == 0) {
 			return;
 		}
 
@@ -223,7 +228,7 @@ namespace gameApp {
 		}
 	}
 
-	void Renderer::plotLineLow(int x0, int y0, int x1, int y1, const RGBColor& color)
+	void Renderer::PlotLineLow(int x0, int y0, int x1, int y1, const RGBColor& color)
 	{
 		int dx = x1 - x0;
 		int dy = y1 - y0;
@@ -251,7 +256,7 @@ namespace gameApp {
 		}
 	}
 
-	void Renderer::plotLineHigh(int x0, int y0, int x1, int y1, const RGBColor& color)
+	void Renderer::PlotLineHigh(int x0, int y0, int x1, int y1, const RGBColor& color)
 	{
 		int dx = x1 - x0;
 		int dy = y1 - y0;
@@ -284,16 +289,16 @@ namespace gameApp {
 		if (abs(y1 - y0) < abs(x1 - x0))
 		{
 			if (x0 > x1)
-				plotLineLow(x1, y1, x0, y0, color);
+				PlotLineLow(x1, y1, x0, y0, color);
 			else
-				plotLineLow(x0, y0, x1, y1, color);
+				PlotLineLow(x0, y0, x1, y1, color);
 		}
 		else
 		{
 			if (y0 > y1)
-				plotLineHigh(x1, y1, x0, y0, color);
+				PlotLineHigh(x1, y1, x0, y0, color);
 			else
-				plotLineHigh(x0, y0, x1, y1, color);
+				PlotLineHigh(x0, y0, x1, y1, color);
 		}
 	}
 
@@ -311,6 +316,132 @@ namespace gameApp {
 			for (int x = -radius; x <= radius; x++)
 				if (x * x + y * y < radius * radius + radius)
 					SetPixel(originX + x, originY + y, color);
+	}
+
+	int Renderer::RotateXCord(int x, int y, float angle) {
+		return (x * cos(angle * PI / 180) - y * sin(angle * PI / 180)) + 0.5;
+	}
+
+	int Renderer::RotateYCord(int x, int y, float angle) {
+		return (x * sin(angle * PI / 180) + y * cos(angle * PI / 180)) + 0.5;
+	}
+
+	void Renderer::DrawRectRotated(const Rect& rect, const RGBColor& color, float angle) {
+		int xCenter = (2 * rect.x + rect.width) / 2;
+		int yCenter = (2 * rect.y + rect.height) / 2;
+
+		//center rectangle at origin
+		int centeredXMin = rect.x - xCenter;
+		int centeredXMax = rect.x + rect.width - xCenter;
+		int centeredYMin = rect.y - yCenter;
+		int centeredYMax = rect.y + rect.height - yCenter;
+
+		//rotate the corners
+		int centeredRotatedBottomLeftX = RotateXCord(centeredXMin, centeredYMin, angle);
+		int centeredRotatedBottomLeftY = RotateYCord(centeredXMin, centeredYMin, angle);
+		int centeredRotatedTopLeftX = RotateXCord(centeredXMin, centeredYMax, angle);
+		int centeredRotatedTopLeftY = RotateYCord(centeredXMin, centeredYMax, angle);
+		int centeredRotatedBottomRightX = RotateXCord(centeredXMax, centeredYMin, angle);
+		int centeredRotatedBottomRightY = RotateYCord(centeredXMax, centeredYMin, angle);
+		int centeredRotatedTopRightX = RotateXCord(centeredXMax, centeredYMax, angle);
+		int centeredRotatedTopRightY = RotateYCord(centeredXMax, centeredYMax, angle);
+
+		//translate back to original center
+		centeredRotatedBottomLeftX += xCenter;
+		centeredRotatedBottomLeftY += yCenter;
+		centeredRotatedTopLeftX += xCenter;
+		centeredRotatedTopLeftY += yCenter;
+		centeredRotatedBottomRightX += xCenter;
+		centeredRotatedBottomRightY	+= yCenter;
+		centeredRotatedTopRightX += xCenter;
+		centeredRotatedTopRightY += yCenter;
+
+		DrawLine(centeredRotatedBottomLeftX, centeredRotatedBottomLeftY, centeredRotatedTopLeftX, centeredRotatedTopLeftY, color);
+		DrawLine(centeredRotatedTopLeftX, centeredRotatedTopLeftY, centeredRotatedTopRightX, centeredRotatedTopRightY, color);
+		DrawLine(centeredRotatedTopRightX, centeredRotatedTopRightY, centeredRotatedBottomRightX, centeredRotatedBottomRightY, color);
+		DrawLine(centeredRotatedBottomRightX, centeredRotatedBottomRightY, centeredRotatedBottomLeftX, centeredRotatedBottomLeftY, color);
+	}
+
+	void Renderer::FillRectRotated(const Rect& rect, const RGBColor& color, float angle) {
+		int xCenter = (2 * rect.x + rect.width) / 2;
+		int yCenter = (2 * rect.y + rect.height) / 2;
+
+		int width = 0, height = 0;
+
+		getWindowDimensions(&width, &height);
+
+		//center rectangle at origin
+		int centeredXMin = rect.x - xCenter;
+		int centeredXMax = rect.x + rect.width - xCenter;
+		int centeredYMin = rect.y - yCenter;
+		int centeredYMax = rect.y + rect.height - yCenter;
+
+		//rotate the corners
+		int centeredRotatedBottomLeftX = RotateXCord(centeredXMin, centeredYMin, angle);
+		int centeredRotatedBottomLeftY = RotateYCord(centeredXMin, centeredYMin, angle);
+		int centeredRotatedTopLeftX = RotateXCord(centeredXMin, centeredYMax, angle);
+		int centeredRotatedTopLeftY = RotateYCord(centeredXMin, centeredYMax, angle);
+		int centeredRotatedBottomRightX = RotateXCord(centeredXMax, centeredYMin, angle);
+		int centeredRotatedBottomRightY = RotateYCord(centeredXMax, centeredYMin, angle);
+		int centeredRotatedTopRightX = RotateXCord(centeredXMax, centeredYMax, angle);
+		int centeredRotatedTopRightY = RotateYCord(centeredXMax, centeredYMax, angle);
+
+		//translate back to original center
+		centeredRotatedBottomLeftX += xCenter;
+		centeredRotatedBottomLeftY += yCenter;
+		centeredRotatedTopLeftX += xCenter;
+		centeredRotatedTopLeftY += yCenter;
+		centeredRotatedBottomRightX += xCenter;
+		centeredRotatedBottomRightY += yCenter;
+		centeredRotatedTopRightX += xCenter;
+		centeredRotatedTopRightY += yCenter;
+
+		int jMin = max(0, min(centeredRotatedBottomLeftX, min(centeredRotatedTopLeftX, min(centeredRotatedBottomRightX, centeredRotatedTopRightX))));
+		int iMin = max(0, min(centeredRotatedBottomLeftY, min(centeredRotatedTopLeftY, min(centeredRotatedBottomRightY, centeredRotatedTopRightY))));		
+		int jMax = min(width, max(centeredRotatedBottomLeftX, max(centeredRotatedTopLeftX, max(centeredRotatedBottomRightX, centeredRotatedTopRightX))));
+		int iMax = min(height, max(centeredRotatedBottomLeftY, max(centeredRotatedTopLeftY, max(centeredRotatedBottomRightY, centeredRotatedTopRightY))));
+
+		//Point-In-Polygon Algorithm - most efficient code
+		float xCorners[4] = { centeredRotatedBottomRightX, centeredRotatedBottomLeftX, centeredRotatedTopLeftX, centeredRotatedTopRightX };
+		float yCorners[4] = { centeredRotatedBottomRightY, centeredRotatedBottomLeftY, centeredRotatedTopLeftY, centeredRotatedTopRightY };
+		float constant[4] = {};
+		float multiple[4] = {};
+
+		int r = 3;
+
+		for (int t = 0; t < 4; t++) {
+			if (yCorners[r] == yCorners[t]) {
+				constant[t] = xCorners[t];
+				multiple[t] = 0;
+			}
+			else {
+				constant[t] = xCorners[t] - (yCorners[t] * xCorners[r]) / (yCorners[r] - yCorners[t]) + (yCorners[t] * xCorners[t]) / (yCorners[r] - yCorners[t]);
+				multiple[t] = (xCorners[r] - xCorners[t]) / (yCorners[r] - yCorners[t]);
+			}
+			r = t;
+		}
+
+		bool in = 0;
+		bool current = 0, previous = 0;
+
+		for (int i = iMin; i < iMax; i++){
+			for (int j = jMin; j < jMax; j++) {
+				//logic for filling in the rect
+				current = yCorners[3] > i;
+				in = 0;
+				for (int t = 0; t < 4; t++) {
+					previous = current;
+					current = yCorners[t] > i;
+					if (current != previous) {
+						in ^= i * multiple[t] + constant[t] < j;
+					}
+				}
+
+				if (in) {
+					SetPixel(j, i, color);
+				}
+			}
+		}
 	}
 
 }

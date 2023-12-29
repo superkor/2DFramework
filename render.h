@@ -2,6 +2,7 @@
 #include <windows.h>
 #include <stdint.h>
 
+#define PI 3.1415926525897
 
 namespace gameApp {
 	struct RGBColor {
@@ -10,6 +11,10 @@ namespace gameApp {
 
 	struct Rect {
 		int x, y, width, height;
+	};
+
+	struct Coords {
+		int x, y;
 	};
 
 	/**
@@ -74,9 +79,13 @@ namespace gameApp {
 
 		static void clear();
 
-		static void plotLineLow(int x0, int y0, int x1, int y1, const RGBColor& color);
+		static void PlotLineLow(int x0, int y0, int x1, int y1, const RGBColor& color);
 
-		static void plotLineHigh(int x0, int y0, int x1, int y1, const RGBColor& color);
+		static void PlotLineHigh(int x0, int y0, int x1, int y1, const RGBColor& color);
+
+		static int RotateXCord(int x, int y, float angle);
+
+		static int RotateYCord(int x, int y, float angle);
 
 	public:
 		inline static void SetClearColor(const RGBColor& color) {
@@ -96,5 +105,12 @@ namespace gameApp {
 		static void FillCircle(int radius, int originX, int originY, const RGBColor& color);
 
 		static void RedrawOnResizedWindow(HDC deviceContext, int width, int height);
+
+		//rotate a rect from its given coordinates by an angle about its center
+		static void DrawRectRotated(const Rect& rect, const RGBColor& color, float angle);
+
+		static void FillRectRotated(const Rect& rect, const RGBColor& color, float angle);
+
+		static void DrawPolygon(const Coords coords[], const RGBColor& color);
 	};
 }

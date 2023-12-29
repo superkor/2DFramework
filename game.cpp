@@ -64,9 +64,9 @@ namespace gameApp {
 			{
 				int width = LOWORD(lParam);
 				int height = HIWORD(lParam);
-				/*wchar_t buf[256];
+				wchar_t buf[256];
 				swprintf(buf, 256, L"width %d height %d\n", width, height);
-				OutputDebugString(buf);*/
+				OutputDebugString(buf);
 
 				Game::setWindowProperties(Game::getWindowTitle(), width, height);
 
