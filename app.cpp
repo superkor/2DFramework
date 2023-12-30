@@ -110,12 +110,19 @@ appEntryPoint{
 		gameApp::Renderer::DrawRect({ 800, 420, 120, 100 }, { 0, 255, 255 });
 		gameApp::Renderer::DrawLine(40, 100, 240, 300, { 0, 255, 0});
 		gameApp::Renderer::DrawCircle(80, int(z), int(z), { 255, 0, 0});
-		gameApp::Renderer::FillCircle(50, int(x + 0.5f), int(y + 0.5f), { 255, 255, 255 });
+		//gameApp::Renderer::FillCircle(50, int(x + 0.5f), int(y + 0.5f), { 255, 255, 255 });
 
 		gameApp::Renderer::DrawRectRotated({ int(wx), int(wy), 120, 100 }, { 52, 71, 4 }, int(angle));
 
 		gameApp::Renderer::FillRectRotated({ 100,100,120,100 }, { 0,0,0 }, int(angle));
 		gameApp::Renderer::DrawRectRotated({ 100,100,120,100 }, { 255,255,255 }, int(angle));
+
+		//gameApp::Coords coords[6] = { {500, 250}, { 100,20 }, { 400,300 }, { 20,10 }, {10,200 }, {50,30} };
+		gameApp::Coords coords[6] = { {int(x + 500 + 0.5f), int(y + 250 + 0.5f)}, {int(x + 100 + 0.5f), int(y + 20 + 0.5f)}, {int(x + 400 + 0.5f), int(y + 300 + 0.5f)},
+			{int(x + 20 + 0.5f), int(y + 10 + 0.5f)}, {int(x + 10 + 0.5f), int(y + 200 + 0.5f)}, {int(x + 50 + 0.5f), int(y + 30 + 0.5f)}};
+
+		gameApp::Renderer::DrawFilledPolygon(coords, 6, { 255,255,255 });
+		gameApp::Renderer::DrawPolygon(coords, 6, { 0,0,0 });
 
 		angle += 100.0f * delta;
 

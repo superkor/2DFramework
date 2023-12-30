@@ -111,6 +111,8 @@ namespace gameApp {
 
 		static void FillRectRotated(const Rect& rect, const RGBColor& color, float angle);
 
-		static void DrawPolygon(const Coords coords[], const RGBColor& color);
+		static void DrawPolygon(const Coords coords[], int length, const RGBColor& color);
+
+		static void DrawFilledPolygon(const Coords coords[], int length, const RGBColor& color);
 	};
 }

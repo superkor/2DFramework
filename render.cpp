@@ -444,4 +444,96 @@ namespace gameApp {
 		}
 	}
 
+	void Renderer::DrawPolygon(const Coords coords[], int length, const RGBColor& color) {
+		if (length == 0) {
+			return;
+		}
+
+		for (int i = 0; i < length-1; i++) {
+			DrawLine(coords[i].x, coords[i].y, coords[i + 1].x, coords[i + 1].y, color);
+		}
+
+		DrawLine(coords[length - 1].x, coords[length - 1].y, coords[0].x, coords[0].y, color);
+	}
+
+	void Renderer::DrawFilledPolygon(const Coords coords[], int length, const RGBColor& color) {
+		int minX = 0, maxX = 0, minY = 0, maxY = 0, width = 0, height = 0;
+
+		if (length == 0) {
+			return;
+		}
+
+
+		getWindowDimensions(&width, &height);
+
+		minX = width;
+		minY = height;
+
+		for (int i = 0; i < length; i++) {
+			if (coords[i].x > maxX && coords[i].x > 0) {
+				maxX = coords[i].x;
+			}
+			if (coords[i].x < minX && coords[i].x < width) {
+				minX = coords[i].x;
+			}
+			if (coords[i].y > maxY && coords[i].y > 0) {
+				maxY = coords[i].y;
+			}
+			if (coords[i].y < minY && coords[i].y < height) {
+				minY = coords[i].y;
+			}
+		}
+
+		//Point-In-Polygon Algorithm - most efficient code
+		float* xCorners = (float*) malloc(length * sizeof(float));
+		float* yCorners = (float*) malloc(length * sizeof(float));
+		float* constant = (float*) malloc(length * sizeof(float));
+		float* multiple = (float*) malloc(length * sizeof(float));
+
+		for (int i = 0; i < length; i++) {
+			xCorners[i] = coords[i].x;
+			yCorners[i] = coords[i].y;
+		}
+
+		int r = length-1;
+
+		for (int t = 0; t < length; t++) {
+			if (yCorners[r] == yCorners[t]) {
+				constant[t] = xCorners[t];
+				multiple[t] = 0;
+			}
+			else {
+				constant[t] = xCorners[t] - (yCorners[t] * xCorners[r]) / (yCorners[r] - yCorners[t]) + (yCorners[t] * xCorners[t]) / (yCorners[r] - yCorners[t]);
+				multiple[t] = (xCorners[r] - xCorners[t]) / (yCorners[r] - yCorners[t]);
+			}
+			r = t;
+		}
+
+		bool in = 0;
+		bool current = 0, previous = 0;
+
+		for (int i = minY; i < maxY; i++) {
+			for (int j = minX; j < maxX; j++) {
+				//logic for filling in the rect
+				current = yCorners[length-1] > i;
+				in = 0;
+				for (int t = 0; t < length; t++) {
+					previous = current;
+					current = yCorners[t] > i;
+					if (current != previous) {
+						in ^= i * multiple[t] + constant[t] < j;
+					}
+				}
+
+				if (in) {
+					SetPixel(j, i, color);
+				}
+			}
+		}
+
+		free(xCorners);
+		free(yCorners);
+		free(constant);
+		free(multiple);
+	}
 }
