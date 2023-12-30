@@ -117,6 +117,10 @@ namespace gameApp {
 			keyboard.keys[DC_TILDE].isDown = isDown;
 			keyboard.keys[DC_TILDE].wasDown = wasDown;
 		}
+		else if (VKCode == VK_F11) {
+			keyboard.keys[DC_F11].isDown = isDown;
+			keyboard.keys[DC_F11].wasDown = wasDown;
+		}
 	}
 
 	Input::Position Input::getMousePosition()

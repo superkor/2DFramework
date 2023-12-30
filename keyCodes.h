@@ -55,6 +55,8 @@
 #define DC_BACKSPACE	50
 #define DC_TILDE		51
 
+#define DC_F11			52
+
 #define DC_MOUSE_LEFT	0
 #define DC_MOUSE_RIGHT	1
 #define DC_MOUSE_MIDDLE	2

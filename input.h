@@ -4,7 +4,7 @@
 #include "keyCodes.h"
 #include <windowsx.h>
 
-#define DC_MAX_KEYS 52
+#define DC_MAX_KEYS 53
 #define DC_MAX_MOUSE_BUTTONS 5
 
 namespace gameApp {

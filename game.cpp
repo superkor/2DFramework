@@ -9,6 +9,8 @@ namespace gameApp {
 		windowWidth = 400;
 		windowHeight = 400;
 	}
+	WINDOWPLACEMENT g_wpPrev = { sizeof(g_wpPrev) };
+
 
 	// handles window events
 	LRESULT CALLBACK WindowCallback(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam) {
@@ -41,6 +43,7 @@ namespace gameApp {
 				bool isDown = (lParam & (1 << 31)) == 0;
 
 				Input::processKeyboardInput(VKCode, wasDown, isDown);
+
 			} break;
 
 			case WM_LBUTTONDOWN:

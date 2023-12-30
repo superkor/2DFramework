@@ -16,6 +16,10 @@ appEntryPoint{
 
 	float angle = 10.0f;
 
+	bool wasPressed = 0;
+
+	WINDOWPLACEMENT g_wpPrev = { sizeof(g_wpPrev) };
+
 	gameApp::Game::setGameUpdate([&](float delta) {
 		wchar_t charBuffer[256];
 		//output seconds per frame
@@ -45,6 +49,35 @@ appEntryPoint{
 		gameApp::Renderer::FillRect({ 250, 250, 320, 180 }, { 0, 255, 0 });
 		//gameApp::Renderer::FillRect({ int(x + 0.5f), int(y + 0.5f), 320, 180 }, { 0, 255, 0 });
 		//gameApp::Renderer::SetPixel(10, 10, { 0, 0, 255 });
+
+		HWND windowHandle = gameApp::Game::getWindowHandle();
+
+		if (gameApp::Input::isKeyPressed(DC_F11)) {
+			wasPressed = 1;
+		}
+
+		if (wasPressed && gameApp::Input::isKeyReleased(DC_F11)) {
+			wasPressed = 0;
+			DWORD dwStyle = GetWindowLong(windowHandle, GWL_STYLE);
+			if (dwStyle & WS_OVERLAPPEDWINDOW) {
+				MONITORINFO mi = { sizeof(mi) };
+				if (GetWindowPlacement(windowHandle, &g_wpPrev) && GetMonitorInfo(MonitorFromWindow(windowHandle, MONITOR_DEFAULTTOPRIMARY), &mi)) {
+					SetWindowLong(windowHandle, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
+					SetWindowPos(windowHandle, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top,
+						mi.rcMonitor.right - mi.rcMonitor.left,
+						mi.rcMonitor.bottom - mi.rcMonitor.top,
+						SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+				}
+			}
+			else {
+				SetWindowLong(windowHandle, GWL_STYLE,
+					dwStyle | WS_OVERLAPPEDWINDOW);
+				SetWindowPlacement(windowHandle, &g_wpPrev);
+				SetWindowPos(windowHandle, NULL, 0, 0, 0, 0,
+					SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+					SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+			}
+		}
 
 		if (gameApp::Input::isKeyPressed(DC_W)) {
 			y -= 1000.0f * delta;

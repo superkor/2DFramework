@@ -30,8 +30,7 @@ namespace gameApp {
 		~Game() {};
 
 		static HWND& getWindowHandle() {
-			static HWND handle;
-			return handle;
+			return getInstance().windowHandle;
 		}
 
 		static Game& getInstance() {
