@@ -362,6 +362,60 @@ namespace gameApp {
 		DrawLine(centeredRotatedBottomRightX, centeredRotatedBottomRightY, centeredRotatedBottomLeftX, centeredRotatedBottomLeftY, color);
 	}
 
+	void Renderer::FillPolygon(float xCorners[], float yCorners[], int length, int minMax[], const RGBColor& color) {
+		if (xCorners == NULL || yCorners == NULL || minMax == NULL) {
+			return;
+		}
+
+		if (length == 0) {
+			return;
+		}
+
+		//Point-In-Polygon Algorithm - most efficient code
+
+		float* constant = (float*)malloc(length * sizeof(float));
+		float* multiple = (float*)malloc(length * sizeof(float));
+
+		int r = length - 1;
+
+		for (int t = 0; t < length; t++) {
+			if (yCorners[r] == yCorners[t]) {
+				constant[t] = xCorners[t];
+				multiple[t] = 0;
+			}
+			else {
+				constant[t] = xCorners[t] - (yCorners[t] * xCorners[r]) / (yCorners[r] - yCorners[t]) + (yCorners[t] * xCorners[t]) / (yCorners[r] - yCorners[t]);
+				multiple[t] = (xCorners[r] - xCorners[t]) / (yCorners[r] - yCorners[t]);
+			}
+			r = t;
+		}
+
+		bool in = 0;
+		bool current = 0, previous = 0;
+
+		for (int i = minMax[0]; i < minMax[1]; i++) {
+			for (int j = minMax[2]; j < minMax[3]; j++) {
+				//logic for filling in the rect
+				current = yCorners[length - 1] > i;
+				in = 0;
+				for (int t = 0; t < length; t++) {
+					previous = current;
+					current = yCorners[t] > i;
+					if (current != previous) {
+						in ^= i * multiple[t] + constant[t] < j;
+					}
+				}
+
+				if (in) {
+					SetPixel(j, i, color);
+				}
+			}
+		}
+
+		free(constant);
+		free(multiple);
+	}
+
 	void Renderer::FillRectRotated(const Rect& rect, const RGBColor& color, float angle) {
 		int xCenter = (2 * rect.x + rect.width) / 2;
 		int yCenter = (2 * rect.y + rect.height) / 2;
@@ -401,47 +455,12 @@ namespace gameApp {
 		int jMax = min(width, max(centeredRotatedBottomLeftX, max(centeredRotatedTopLeftX, max(centeredRotatedBottomRightX, centeredRotatedTopRightX))));
 		int iMax = min(height, max(centeredRotatedBottomLeftY, max(centeredRotatedTopLeftY, max(centeredRotatedBottomRightY, centeredRotatedTopRightY))));
 
-		//Point-In-Polygon Algorithm - most efficient code
 		float xCorners[4] = { centeredRotatedBottomRightX, centeredRotatedBottomLeftX, centeredRotatedTopLeftX, centeredRotatedTopRightX };
 		float yCorners[4] = { centeredRotatedBottomRightY, centeredRotatedBottomLeftY, centeredRotatedTopLeftY, centeredRotatedTopRightY };
-		float constant[4] = {};
-		float multiple[4] = {};
 
-		int r = 3;
+		int minMax[4] = { iMin, iMax, jMin, jMax };
 
-		for (int t = 0; t < 4; t++) {
-			if (yCorners[r] == yCorners[t]) {
-				constant[t] = xCorners[t];
-				multiple[t] = 0;
-			}
-			else {
-				constant[t] = xCorners[t] - (yCorners[t] * xCorners[r]) / (yCorners[r] - yCorners[t]) + (yCorners[t] * xCorners[t]) / (yCorners[r] - yCorners[t]);
-				multiple[t] = (xCorners[r] - xCorners[t]) / (yCorners[r] - yCorners[t]);
-			}
-			r = t;
-		}
-
-		bool in = 0;
-		bool current = 0, previous = 0;
-
-		for (int i = iMin; i < iMax; i++){
-			for (int j = jMin; j < jMax; j++) {
-				//logic for filling in the rect
-				current = yCorners[3] > i;
-				in = 0;
-				for (int t = 0; t < 4; t++) {
-					previous = current;
-					current = yCorners[t] > i;
-					if (current != previous) {
-						in ^= i * multiple[t] + constant[t] < j;
-					}
-				}
-
-				if (in) {
-					SetPixel(j, i, color);
-				}
-			}
-		}
+		FillPolygon(xCorners, yCorners, 4, minMax, color);
 	}
 
 	void Renderer::DrawPolygon(const Coords coords[], int length, const RGBColor& color) {
@@ -463,7 +482,6 @@ namespace gameApp {
 			return;
 		}
 
-
 		getWindowDimensions(&width, &height);
 
 		minX = width;
@@ -484,56 +502,20 @@ namespace gameApp {
 			}
 		}
 
-		//Point-In-Polygon Algorithm - most efficient code
 		float* xCorners = (float*) malloc(length * sizeof(float));
 		float* yCorners = (float*) malloc(length * sizeof(float));
-		float* constant = (float*) malloc(length * sizeof(float));
-		float* multiple = (float*) malloc(length * sizeof(float));
 
 		for (int i = 0; i < length; i++) {
 			xCorners[i] = coords[i].x;
 			yCorners[i] = coords[i].y;
 		}
 
-		int r = length-1;
+		int minMax[4] = { minY, maxY, minX, maxX };
 
-		for (int t = 0; t < length; t++) {
-			if (yCorners[r] == yCorners[t]) {
-				constant[t] = xCorners[t];
-				multiple[t] = 0;
-			}
-			else {
-				constant[t] = xCorners[t] - (yCorners[t] * xCorners[r]) / (yCorners[r] - yCorners[t]) + (yCorners[t] * xCorners[t]) / (yCorners[r] - yCorners[t]);
-				multiple[t] = (xCorners[r] - xCorners[t]) / (yCorners[r] - yCorners[t]);
-			}
-			r = t;
-		}
-
-		bool in = 0;
-		bool current = 0, previous = 0;
-
-		for (int i = minY; i < maxY; i++) {
-			for (int j = minX; j < maxX; j++) {
-				//logic for filling in the rect
-				current = yCorners[length-1] > i;
-				in = 0;
-				for (int t = 0; t < length; t++) {
-					previous = current;
-					current = yCorners[t] > i;
-					if (current != previous) {
-						in ^= i * multiple[t] + constant[t] < j;
-					}
-				}
-
-				if (in) {
-					SetPixel(j, i, color);
-				}
-			}
-		}
+		FillPolygon(xCorners, yCorners, length, minMax, color);
 
 		free(xCorners);
 		free(yCorners);
-		free(constant);
-		free(multiple);
+
 	}
 }

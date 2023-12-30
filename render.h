@@ -87,6 +87,12 @@ namespace gameApp {
 
 		static int RotateYCord(int x, int y, float angle);
 
+		/**
+		* @param int minMax[] - should be length 4: minY, maxY, minX, maxX
+		* @param int length - length of the arrays xCorners and yCorners
+		*/
+		static void FillPolygon(float xCorners[], float yCorners[], int length, int minMax[], const RGBColor& color);
+
 	public:
 		inline static void SetClearColor(const RGBColor& color) {
 			getInstance().clearColor = color;
@@ -114,5 +120,7 @@ namespace gameApp {
 		static void DrawPolygon(const Coords coords[], int length, const RGBColor& color);
 
 		static void DrawFilledPolygon(const Coords coords[], int length, const RGBColor& color);
+
+		static void DrawPolygonRotated(const Coords coords[], int length, float angle, const RGBColor& color);
 	};
 }
