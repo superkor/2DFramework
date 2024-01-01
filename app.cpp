@@ -47,6 +47,7 @@ appEntryPoint{
 		height = gameApp::Game::getWindowHeight();
 
 		gameApp::Renderer::FillRect({ 250, 250, 320, 180 }, { 0, 255, 0 });
+		gameApp::Renderer::FillRect({ 1000, 250, 320, 180 }, { 0, 255, 0 });
 		//gameApp::Renderer::FillRect({ int(x + 0.5f), int(y + 0.5f), 320, 180 }, { 0, 255, 0 });
 		//gameApp::Renderer::SetPixel(10, 10, { 0, 0, 255 });
 
@@ -79,28 +80,44 @@ appEntryPoint{
 			}
 		}
 
+		RECT rect = {};
+
+
 		if (gameApp::Input::isKeyPressed(DC_W)) {
 			y -= 1000.0f * delta;
 			if (y <= 0) {
 				y = 0;
 			}
 		}
+		GetWindowRect(windowHandle, &rect);
+
 		if (gameApp::Input::isKeyPressed(DC_S)) {
 			y += 1000.0f * delta;
 			if (y >= height) {
-				y = height;
+				//y = height;
+				//shift window down
+
+				SetWindowPos(windowHandle, 0, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top + 1000.0f*delta, SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+				gameApp::Game::setWindowProperties(gameApp::Game::getWindowTitle(), rect.right - rect.left, rect.bottom - rect.top + 1000.0f * delta);
 			}
 		}
 		if (gameApp::Input::isKeyPressed(DC_A)) {
 			x -= 1000.0f * delta;
 			if (x <= 0) {
 				x = 0;
+				
 			}
 		}
+
+		GetWindowRect(windowHandle, &rect);
+
 		if (gameApp::Input::isKeyPressed(DC_D)) {
 			x += 1000.0f * delta;
 			if (x >= width) {
-				x = width;
+				//x = width;
+
+				SetWindowPos(windowHandle, 0, rect.left, rect.top, rect.right - rect.left + 1000.0f * delta, rect.bottom - rect.top, SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+				gameApp::Game::setWindowProperties(gameApp::Game::getWindowTitle(), rect.right - rect.left + 1000.0f * delta, rect.bottom - rect.top);
 			}
 		}
 
@@ -150,12 +167,15 @@ appEntryPoint{
 		gameApp::Renderer::FillRectRotated({ 100,100,120,100 }, { 0,0,0 }, int(angle));
 		gameApp::Renderer::DrawRectRotated({ 100,100,120,100 }, { 255,255,255 }, int(angle));
 
-		//gameApp::Coords coords[6] = { {500, 250}, { 100,20 }, { 400,300 }, { 20,10 }, {10,200 }, {50,30} };
+		gameApp::Coords coords2[6] = { {500, 250}, { 100,20 }, { 400,300 }, { 20,10 }, {10,200 }, {50,30} };
 		gameApp::Coords coords[6] = { {int(x + 500 + 0.5f), int(y + 250 + 0.5f)}, {int(x + 100 + 0.5f), int(y + 20 + 0.5f)}, {int(x + 400 + 0.5f), int(y + 300 + 0.5f)},
 			{int(x + 20 + 0.5f), int(y + 10 + 0.5f)}, {int(x + 10 + 0.5f), int(y + 200 + 0.5f)}, {int(x + 50 + 0.5f), int(y + 30 + 0.5f)}};
 
 		gameApp::Renderer::DrawFilledPolygon(coords, 6, { 255,255,255 });
 		gameApp::Renderer::DrawPolygon(coords, 6, { 0,0,0 });
+
+		gameApp::Renderer::DrawPolygonRotated(coords2, 6, { 300, 300 }, angle, { 249, 29, 165 });
+		gameApp::Renderer::FillPolygonRotated(coords2, 6, { 300, 300 }, angle, { 249, 29, 165 });
 
 		angle += 100.0f * delta;
 

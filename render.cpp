@@ -318,11 +318,11 @@ namespace gameApp {
 					SetPixel(originX + x, originY + y, color);
 	}
 
-	int Renderer::RotateXCord(int x, int y, float angle) {
+	int Renderer::RotateXCoord(int x, int y, float angle) {
 		return (x * cos(angle * PI / 180) - y * sin(angle * PI / 180)) + 0.5;
 	}
 
-	int Renderer::RotateYCord(int x, int y, float angle) {
+	int Renderer::RotateYCoord(int x, int y, float angle) {
 		return (x * sin(angle * PI / 180) + y * cos(angle * PI / 180)) + 0.5;
 	}
 
@@ -337,14 +337,14 @@ namespace gameApp {
 		int centeredYMax = rect.y + rect.height - yCenter;
 
 		//rotate the corners
-		int centeredRotatedBottomLeftX = RotateXCord(centeredXMin, centeredYMin, angle);
-		int centeredRotatedBottomLeftY = RotateYCord(centeredXMin, centeredYMin, angle);
-		int centeredRotatedTopLeftX = RotateXCord(centeredXMin, centeredYMax, angle);
-		int centeredRotatedTopLeftY = RotateYCord(centeredXMin, centeredYMax, angle);
-		int centeredRotatedBottomRightX = RotateXCord(centeredXMax, centeredYMin, angle);
-		int centeredRotatedBottomRightY = RotateYCord(centeredXMax, centeredYMin, angle);
-		int centeredRotatedTopRightX = RotateXCord(centeredXMax, centeredYMax, angle);
-		int centeredRotatedTopRightY = RotateYCord(centeredXMax, centeredYMax, angle);
+		int centeredRotatedBottomLeftX = RotateXCoord(centeredXMin, centeredYMin, angle);
+		int centeredRotatedBottomLeftY = RotateYCoord(centeredXMin, centeredYMin, angle);
+		int centeredRotatedTopLeftX = RotateXCoord(centeredXMin, centeredYMax, angle);
+		int centeredRotatedTopLeftY = RotateYCoord(centeredXMin, centeredYMax, angle);
+		int centeredRotatedBottomRightX = RotateXCoord(centeredXMax, centeredYMin, angle);
+		int centeredRotatedBottomRightY = RotateYCoord(centeredXMax, centeredYMin, angle);
+		int centeredRotatedTopRightX = RotateXCoord(centeredXMax, centeredYMax, angle);
+		int centeredRotatedTopRightY = RotateYCoord(centeredXMax, centeredYMax, angle);
 
 		//translate back to original center
 		centeredRotatedBottomLeftX += xCenter;
@@ -371,49 +371,105 @@ namespace gameApp {
 			return;
 		}
 
-		//Point-In-Polygon Algorithm - most efficient code
+		//Point-In-Polygon Algorithm : https://alienryderflex.com/polygon/ - most efficient code
 
-		float* constant = (float*)malloc(length * sizeof(float));
-		float* multiple = (float*)malloc(length * sizeof(float));
+		//float* constant = (float*)malloc(length * sizeof(float));
+		//float* multiple = (float*)malloc(length * sizeof(float));
 
-		int r = length - 1;
+		//int r = length - 1;
 
-		for (int t = 0; t < length; t++) {
-			if (yCorners[r] == yCorners[t]) {
-				constant[t] = xCorners[t];
-				multiple[t] = 0;
+		//for (int t = 0; t < length; t++) {
+		//	if (yCorners[r] == yCorners[t]) {
+		//		constant[t] = xCorners[t];
+		//		multiple[t] = 0;
+		//	}
+		//	else {
+		//		constant[t] = xCorners[t] - (yCorners[t] * xCorners[r]) / (yCorners[r] - yCorners[t]) + (yCorners[t] * xCorners[t]) / (yCorners[r] - yCorners[t]);
+		//		multiple[t] = (xCorners[r] - xCorners[t]) / (yCorners[r] - yCorners[t]);
+		//	}
+		//	r = t;
+		//}
+
+		//bool in = 0;
+		//bool current = 0, previous = 0;
+
+		//for (int i = minMax[0]; i < minMax[1]; i++) {
+		//	for (int j = minMax[2]; j < minMax[3]; j++) {
+		//		//logic for filling in the rect
+		//		current = yCorners[length - 1] > i;
+		//		in = 0;
+		//		for (int t = 0; t < length; t++) {
+		//			previous = current;
+		//			current = yCorners[t] > i;
+		//			if (current != previous) {
+		//				in ^= i * multiple[t] + constant[t] < j;
+		//			}
+		//		}
+
+		//		if (in) {
+		//			SetPixel(j, i, color);
+		//		}
+		//	}
+		//}
+
+		//free(constant);
+		//free(multiple);
+
+		//more efficient fill polygon algorithm: https://alienryderflex.com/polygon_fill/
+
+		int nodes = 0, pixelX = 0, swap = 0;
+		int* nodeX = (int*)malloc(sizeof(int) * length);
+		int j = length - 1;
+		int i = 0;
+		for (int pixelY = minMax[0]; pixelY < minMax[1]; pixelY++) {
+
+			nodes = 0;
+			j = length - 1;
+			for (i = 0; i < length; i++) {
+				if (yCorners[i] < (float)pixelY && yCorners[j] >= (float)pixelY || yCorners[j] < (float)pixelY && yCorners[i] >= (float)pixelY) {
+					nodeX[nodes++] = (int)(xCorners[i] + (pixelY - yCorners[i]) / (yCorners[j] - yCorners[i]) * (xCorners[j] - xCorners[i]));
+				}
+				j = i;
 			}
-			else {
-				constant[t] = xCorners[t] - (yCorners[t] * xCorners[r]) / (yCorners[r] - yCorners[t]) + (yCorners[t] * xCorners[t]) / (yCorners[r] - yCorners[t]);
-				multiple[t] = (xCorners[r] - xCorners[t]) / (yCorners[r] - yCorners[t]);
-			}
-			r = t;
-		}
 
-		bool in = 0;
-		bool current = 0, previous = 0;
+			i = 0;
+			//sort nodes
 
-		for (int i = minMax[0]; i < minMax[1]; i++) {
-			for (int j = minMax[2]; j < minMax[3]; j++) {
-				//logic for filling in the rect
-				current = yCorners[length - 1] > i;
-				in = 0;
-				for (int t = 0; t < length; t++) {
-					previous = current;
-					current = yCorners[t] > i;
-					if (current != previous) {
-						in ^= i * multiple[t] + constant[t] < j;
+			while (i < nodes - 1) {
+				if (nodeX[i] > nodeX[i + 1]) {
+					swap = nodeX[i];
+					nodeX[i] = nodeX[i + 1];
+					nodeX[i + 1] = swap;
+					if (i) {
+						i--;
 					}
 				}
+				else {
+					i++;
+				}
+			}
 
-				if (in) {
-					SetPixel(j, i, color);
+			//fill pixels
+
+			for (i = 0; i < nodes; i += 2) {
+				if (nodeX[i] >= minMax[3]) {
+					break;
+				}
+				if (nodeX[i + 1] > minMax[2]) {
+					if (nodeX[i] < minMax[2]) {
+						nodeX[i] = minMax[2];
+					}
+					if (nodeX[i + 1] > minMax[3]) {
+						nodeX[i + 1] = minMax[3];
+					}
+					for (pixelX = nodeX[i]; pixelX < nodeX[i + 1]; pixelX++) {
+						SetPixel(pixelX, pixelY, color);
+					}
 				}
 			}
 		}
 
-		free(constant);
-		free(multiple);
+		free(nodeX);
 	}
 
 	void Renderer::FillRectRotated(const Rect& rect, const RGBColor& color, float angle) {
@@ -431,14 +487,14 @@ namespace gameApp {
 		int centeredYMax = rect.y + rect.height - yCenter;
 
 		//rotate the corners
-		int centeredRotatedBottomLeftX = RotateXCord(centeredXMin, centeredYMin, angle);
-		int centeredRotatedBottomLeftY = RotateYCord(centeredXMin, centeredYMin, angle);
-		int centeredRotatedTopLeftX = RotateXCord(centeredXMin, centeredYMax, angle);
-		int centeredRotatedTopLeftY = RotateYCord(centeredXMin, centeredYMax, angle);
-		int centeredRotatedBottomRightX = RotateXCord(centeredXMax, centeredYMin, angle);
-		int centeredRotatedBottomRightY = RotateYCord(centeredXMax, centeredYMin, angle);
-		int centeredRotatedTopRightX = RotateXCord(centeredXMax, centeredYMax, angle);
-		int centeredRotatedTopRightY = RotateYCord(centeredXMax, centeredYMax, angle);
+		int centeredRotatedBottomLeftX = RotateXCoord(centeredXMin, centeredYMin, angle);
+		int centeredRotatedBottomLeftY = RotateYCoord(centeredXMin, centeredYMin, angle);
+		int centeredRotatedTopLeftX = RotateXCoord(centeredXMin, centeredYMax, angle);
+		int centeredRotatedTopLeftY = RotateYCoord(centeredXMin, centeredYMax, angle);
+		int centeredRotatedBottomRightX = RotateXCoord(centeredXMax, centeredYMin, angle);
+		int centeredRotatedBottomRightY = RotateYCoord(centeredXMax, centeredYMin, angle);
+		int centeredRotatedTopRightX = RotateXCoord(centeredXMax, centeredYMax, angle);
+		int centeredRotatedTopRightY = RotateYCoord(centeredXMax, centeredYMax, angle);
 
 		//translate back to original center
 		centeredRotatedBottomLeftX += xCenter;
@@ -517,5 +573,80 @@ namespace gameApp {
 		free(xCorners);
 		free(yCorners);
 
+	}
+
+	void Renderer::DrawPolygonRotated(const Coords coords[], int length, const Coords rotateCoord, float angle, const RGBColor& color) {
+		if (length == 0) {
+			return;
+		}
+
+		Coords* shiftedPoints = (Coords*)malloc(sizeof(Coords) * length);
+		for (int i = 0; i < length; i++) {
+			shiftedPoints[i] = { coords[i].x - rotateCoord.x, coords[i].y - rotateCoord.y };
+		}
+
+		Coords* rotatedPoints = (Coords*)malloc(sizeof(Coords) * length);
+		for (int i = 0; i < length; i++) {
+			rotatedPoints[i] = { RotateXCoord(shiftedPoints[i].x, shiftedPoints[i].y, angle) + rotateCoord.x, RotateYCoord(shiftedPoints[i].x, shiftedPoints[i].y, angle) + rotateCoord.y };
+		}
+
+		for (int i = 0; i < length-1; i++) {
+			DrawLine(rotatedPoints[i].x, rotatedPoints[i].y, rotatedPoints[i + 1].x, rotatedPoints[i + 1].y, color);
+		}
+		DrawLine(rotatedPoints[length - 1].x, rotatedPoints[length - 1].y, rotatedPoints[0].x, rotatedPoints[0].y, color);
+
+		free(shiftedPoints);
+		free(rotatedPoints);
+
+	}
+
+	void Renderer::FillPolygonRotated(const Coords coords[], int length, const Coords rotateCoord, float angle, const RGBColor& color) {
+		if (length == 0) {
+			return;
+		}
+
+		int minX = 0, maxX = 0, minY = 0, maxY = 0, width = 0, height = 0;
+
+		getWindowDimensions(&width, &height);
+
+		minX = width;
+		minY = height;
+
+		Coords* shiftedPoints = (Coords*)malloc(sizeof(Coords) * length);
+		for (int i = 0; i < length; i++) {
+			shiftedPoints[i] = { coords[i].x - rotateCoord.x, coords[i].y - rotateCoord.y };
+		}
+
+		float* rotatedPointsX = (float*)malloc(sizeof(float) * length);
+		float* rotatedPointsY = (float*)malloc(sizeof(float) * length);
+		for (int i = 0; i < length; i++) {
+			rotatedPointsX[i] = RotateXCoord(shiftedPoints[i].x, shiftedPoints[i].y, angle) + rotateCoord.x;
+			rotatedPointsY[i] = RotateYCoord(shiftedPoints[i].x, shiftedPoints[i].y, angle) + rotateCoord.y;
+		}
+
+		for (int i = 0; i < length; i++) {
+			if (rotatedPointsX[i] > maxX && rotatedPointsX[i] > 0) {
+				maxX = rotatedPointsX[i];
+			}
+			if (rotatedPointsX[i] < minX && rotatedPointsX[i] < width) {
+				minX = rotatedPointsX[i];
+			}
+			if (rotatedPointsY[i] > maxY && rotatedPointsY[i] > 0) {
+				maxY = rotatedPointsY[i];
+			}
+			if (rotatedPointsY[i] < minY && rotatedPointsY[i] < height) {
+				minY = rotatedPointsY[i];
+			}
+		}
+
+		int minMax[4] = { minY , maxY , minX , maxX };
+
+
+
+		FillPolygon(rotatedPointsX, rotatedPointsY, length, minMax, color);
+
+		free(shiftedPoints);
+		free(rotatedPointsX);
+		free(rotatedPointsY);
 	}
 }

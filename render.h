@@ -83,9 +83,9 @@ namespace gameApp {
 
 		static void PlotLineHigh(int x0, int y0, int x1, int y1, const RGBColor& color);
 
-		static int RotateXCord(int x, int y, float angle);
+		static int RotateXCoord(int x, int y, float angle);
 
-		static int RotateYCord(int x, int y, float angle);
+		static int RotateYCoord(int x, int y, float angle);
 
 		/**
 		* @param int minMax[] - should be length 4: minY, maxY, minX, maxX
@@ -121,6 +121,8 @@ namespace gameApp {
 
 		static void DrawFilledPolygon(const Coords coords[], int length, const RGBColor& color);
 
-		static void DrawPolygonRotated(const Coords coords[], int length, float angle, const RGBColor& color);
+		static void DrawPolygonRotated(const Coords coords[], int length, const Coords rotateCoord, float angle, const RGBColor& color);
+
+		static void FillPolygonRotated(const Coords coords[], int length, const Coords rotateCoord, float angle, const RGBColor& color);
 	};
 }
