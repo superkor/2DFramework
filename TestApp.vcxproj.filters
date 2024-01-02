@@ -44,5 +44,11 @@
     <ClCompile Include="input.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="renderDirect2D.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="renderDirect2D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

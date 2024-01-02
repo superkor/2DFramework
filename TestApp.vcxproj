@@ -139,6 +139,8 @@
     <ClCompile Include="game.cpp" />
     <ClCompile Include="input.cpp" />
     <ClCompile Include="render.cpp" />
+    <ClCompile Include="renderDirect2D.cpp" />
+    <ClCompile Include="renderDirect2D.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

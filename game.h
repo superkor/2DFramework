@@ -17,7 +17,10 @@ namespace gameApp {
 		
 		std::function<void(float delta)> update;
 
-		void startWindow();
+		void startWindow(bool renderOption);
+
+		//0 for GDI, 1 for Direct2D
+		bool renderEngineOption = 0;
 	
 	public:
 		Game();
@@ -38,8 +41,12 @@ namespace gameApp {
 			return game;
 		}
 
-		inline static void start() {
-			getInstance().startWindow();
+		inline static bool getOption() {
+			return getInstance().renderEngineOption;
+		}
+
+		inline static void start(bool renderOption) {
+			getInstance().startWindow(renderOption);
 		}
 
 		inline static void setWindowProperties(const std::wstring& title, const int& width, const int& height) {

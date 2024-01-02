@@ -2,6 +2,7 @@
 #include "render.h"
 #include <windows.h>
 #include "input.h"
+#include "renderDirect2D.h"
 
 namespace gameApp {
 	Game::Game() {
@@ -21,6 +22,7 @@ namespace gameApp {
 				{
 					Game::getInstance().running = false;
 					OutputDebugString(L"window closed\n");
+
 				}
 				break;
 
@@ -65,38 +67,51 @@ namespace gameApp {
 
 			case WM_SIZE:
 			{
-				int width = LOWORD(lParam);
-				int height = HIWORD(lParam);
-				wchar_t buf[256];
-				swprintf(buf, 256, L"width %d height %d\n", width, height);
-				OutputDebugString(buf);
+				unsigned int width = LOWORD(lParam);
+				unsigned int height = HIWORD(lParam);
+				if (!Game::getInstance().renderEngineOption) {
+					wchar_t buf[256];
+					swprintf(buf, 256, L"width %d height %d\n", width, height);
+					OutputDebugString(buf);
 
-				Game::setWindowProperties(Game::getWindowTitle(), width, height);
+					Game::setWindowProperties(Game::getWindowTitle(), width, height);
 
-				PAINTSTRUCT paint;
-				HDC deviceContext = BeginPaint(windowHandle, &paint);
-				Renderer::RedrawOnResizedWindow(deviceContext, width, height);
+					PAINTSTRUCT paint;
+					HDC deviceContext = BeginPaint(windowHandle, &paint);
+					Renderer::RedrawOnResizedWindow(deviceContext, width, height);
 
-				EndPaint(windowHandle, &paint);
+					EndPaint(windowHandle, &paint);
 
-				RedrawWindow(windowHandle, 0, 0, RDW_INVALIDATE);
+					RedrawWindow(windowHandle, 0, 0, RDW_INVALIDATE);
+				}
+				else {
+					RenderDirect2D::OnResize(width, height);
+				}
+
 
 			} break;
 			
 			case WM_PAINT: 
 			{
-				//OutputDebugString(L"window paint\n");
-				int width, height;
-				Renderer::getWindowDimensions(&width, &height);
+				if (!Game::getInstance().renderEngineOption) {
+					int width, height;
+					Renderer::getWindowDimensions(&width, &height);
 
 
 
-				PAINTSTRUCT paint;
-				HDC device_context = BeginPaint(windowHandle, &paint);
-					
-				Renderer::copyBufferToWindow(device_context, width, height);
-			
-				EndPaint(windowHandle, &paint);
+					PAINTSTRUCT paint;
+					HDC device_context = BeginPaint(windowHandle, &paint);
+
+					Renderer::copyBufferToWindow(device_context, width, height);
+
+					EndPaint(windowHandle, &paint);
+				}
+				else {
+					//Render Direct2D
+					OutputDebugString(L"Draw Direct2D frame\n");
+					RenderDirect2D::Render();
+				}
+
 		
 			}
 				
@@ -110,7 +125,9 @@ namespace gameApp {
 		return result;
 	}
 
-	void Game::startWindow() {
+	void Game::startWindow(bool renderOption) {
+
+		getInstance().renderEngineOption = renderOption;
 		Renderer::resizeFrameBuffer(windowWidth, windowHeight);
 		
 		const wchar_t* className = L"Game Window";
@@ -122,6 +139,8 @@ namespace gameApp {
 		windowClass.lpfnWndProc = WindowCallback;
 		windowClass.hInstance = hInstance;
 		windowClass.lpszClassName = className;
+
+		windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
 
 		if (!RegisterClassEx(&windowClass)) {
 			OutputDebugString(L"Failed to register window class\n");
@@ -160,7 +179,12 @@ namespace gameApp {
 
 		running = true;
 
-		Renderer::setWindowHandle(windowHandle);
+		if (!renderOption) {
+			Renderer::setWindowHandle(windowHandle);
+		}
+		else {
+			RenderDirect2D::setWindowHandle(windowHandle);
+		}
 
 		//init clock
 		LARGE_INTEGER cpuFreq;
@@ -181,7 +205,7 @@ namespace gameApp {
 			lastCounter = currCounter;
 
 			MSG message;
-			while (PeekMessage(&message, 0, 0, 0, PM_REMOVE)) {
+			while (PeekMessage(&message, 0, 0, 0, PM_REMOVE) && running) {
 				if (message.message == WM_QUIT) {
 					running = false;
 				}
@@ -190,17 +214,25 @@ namespace gameApp {
 				DispatchMessage(&message);
 			}
 
-			Renderer::clear();
-			getInstance().update(delta);
 
-			HDC deviceContext = GetDC(windowHandle);
-			int width, height;
-			Renderer::getWindowDimensions(&width, &height);
+			if (!renderOption) {
 
-			Renderer::copyBufferToWindow(deviceContext, width, height);
 
-			ReleaseDC(windowHandle, deviceContext);
+				Renderer::clear();
+				getInstance().update(delta);
+
+				HDC deviceContext = GetDC(windowHandle);
+				int width, height;
+				Renderer::getWindowDimensions(&width, &height);
+
+				Renderer::copyBufferToWindow(deviceContext, width, height);
+
+				ReleaseDC(windowHandle, deviceContext);
+			}
+
 		}
+
+		PostQuitMessage(0);
 
 	}
 }

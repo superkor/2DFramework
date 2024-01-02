@@ -18,7 +18,7 @@ namespace gameApp {
 	};
 
 	/**
-	* Uses Windows GDI (CPU bounded)
+	* Uses Windows GDI (CPU bounded) for the rendering engine
 	* TODO - Use Direct2D (uses GPU)
 	*/
 	class Renderer {
