@@ -15,6 +15,15 @@ namespace gameApp {
 	/**
 	* Renderer Engine within the Framework using Direct2D API (GPU Bound)
 	*/
+
+	struct RectFloat {
+		float x, y, width, height;
+	};
+
+	struct WindowSize {
+		float width, height;
+	};
+
 	class RenderDirect2D {
 		friend LRESULT CALLBACK WindowCallback(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -99,5 +108,20 @@ namespace gameApp {
 				getInstance().m_pCornflowerBlueBrush->Release();
 			}
 		}
+
+		static void DrawRect(const struct RectFloat& rect, unsigned int hex, float alpha);
+		
+		static void FillRect(const struct RectFloat& rect, unsigned int hex, float alpha);
+
+		static void BeginDraw();
+
+		static void EndDraw();
+
+		static void ClearWindow(unsigned int color);
+
+		static WindowSize GetWindowSize();
+
+		static void DrawLine(float x0, float y0, float x1, float y1, unsigned int hex, float alpha, float width);
+
 	};
 }

@@ -108,8 +108,10 @@ namespace gameApp {
 				}
 				else {
 					//Render Direct2D
-					OutputDebugString(L"Draw Direct2D frame\n");
+					//OutputDebugString(L"Draw Direct2D frame\n");
 					RenderDirect2D::Render();
+					RenderDirect2D::DiscardDeviceResources();
+					ValidateRect(windowHandle, NULL);
 				}
 
 		
@@ -126,8 +128,6 @@ namespace gameApp {
 	}
 
 	void Game::startWindow(bool renderOption) {
-
-		getInstance().renderEngineOption = renderOption;
 		Renderer::resizeFrameBuffer(windowWidth, windowHeight);
 		
 		const wchar_t* className = L"Game Window";
@@ -205,7 +205,7 @@ namespace gameApp {
 			lastCounter = currCounter;
 
 			MSG message;
-			while (PeekMessage(&message, 0, 0, 0, PM_REMOVE) && running) {
+			while (PeekMessage(&message, 0, 0, 0, PM_REMOVE)) {
 				if (message.message == WM_QUIT) {
 					running = false;
 				}
@@ -228,6 +228,10 @@ namespace gameApp {
 				Renderer::copyBufferToWindow(deviceContext, width, height);
 
 				ReleaseDC(windowHandle, deviceContext);
+			}
+
+			if (renderOption) {
+				getInstance().update(delta);
 			}
 
 		}

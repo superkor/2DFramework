@@ -20,7 +20,7 @@ namespace gameApp {
 		void startWindow(bool renderOption);
 
 		//0 for GDI, 1 for Direct2D
-		bool renderEngineOption = 0;
+		bool renderEngineOption = false;
 	
 	public:
 		Game();
@@ -46,6 +46,7 @@ namespace gameApp {
 		}
 
 		inline static void start(bool renderOption) {
+			getInstance().renderEngineOption = renderOption;
 			getInstance().startWindow(renderOption);
 		}
 

@@ -23,9 +23,7 @@ appEntryPoint{
 	WINDOWPLACEMENT g_wpPrev = { sizeof(g_wpPrev) };
 
 	gameApp::Game::setGameUpdate([&](float delta) {
-		if (gameApp::Game::getInstance().getOption) {
-			return;
-		}
+
 		wchar_t charBuffer[256];
 		//output seconds per frame
 		/*swprintf(charBuffer, 256, L"seconds per frame: %f\n", delta);
@@ -46,6 +44,10 @@ appEntryPoint{
 
 			timePassed -= 1.0f;
 			frames = 0;
+		}
+
+		if (gameApp::Game::getInstance().getOption()) {
+			return;
 		}
 		
 		width = gameApp::Game::getWindowWidth();
