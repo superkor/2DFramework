@@ -15,7 +15,6 @@ namespace gameApp {
 	/**
 	* Renderer Engine within the Framework using Direct2D API (GPU Bound)
 	*/
-
 	struct RectFloat {
 		float x, y, width, height;
 	};
@@ -24,23 +23,38 @@ namespace gameApp {
 		float width, height;
 	};
 
+	/// <summary></summary>
+	/// <param name="option"> 0: Rotation, 1: Scale, 2: Skew, 3: Translation </param>
+	/// <param name="x"> x coord </param>
+	/// <param name="y"> y coord </param>
+	/// <param name="param1"> parameter 1 for the appropriate transformation </param>
+	/// <param name="param2"> parameter 2 for the appropriate transformation (if applicable) </param>
+	struct Transformation {
+		unsigned char option;
+		float x, y, param1, param2;
+	};
+
+	/// <summary>
+	/// List of all transformations to be done to a geometry
+	/// </summary>
+	struct TransformationList {
+		struct Transformation *transformations;
+		unsigned int length;
+	};
+
 	class RenderDirect2D {
 		friend LRESULT CALLBACK WindowCallback(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
 
 		friend class Game;
+
 	private:
 		ID2D1Factory* m_pDirect2dFactory;
 		ID2D1HwndRenderTarget* m_pRenderTarget;
-		ID2D1SolidColorBrush* m_pLightSlateGrayBrush;
-		ID2D1SolidColorBrush* m_pCornflowerBlueBrush;
 		HWND windowHandle = 0;
 
 		RenderDirect2D() {
 			m_pDirect2dFactory = NULL;
 			m_pRenderTarget = NULL;
-			m_pLightSlateGrayBrush = NULL;
-			m_pCornflowerBlueBrush = NULL;
-
 			D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_pDirect2dFactory);
 		}
 
@@ -53,6 +67,23 @@ namespace gameApp {
 
 		inline static void setWindowHandle(HWND _windowHandle) {
 			getInstance().windowHandle = _windowHandle;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="transformation"><see cref="struct Transformation"> </see></param>
+		/// <returns></returns>
+		void setTransformation(const struct TransformationList& transformations);
+
+		D2D_MATRIX_3X2_F prevTransform = {};
+
+		/// <summary>
+		/// Resets to default transformation matrix
+		/// Used before drawing a new geometry
+		/// </summary>
+		inline static void ResetTransformation() {
+			getInstance().m_pRenderTarget->SetTransform(getInstance().prevTransform);
 		}
 
 
@@ -79,18 +110,9 @@ namespace gameApp {
 			getInstance().m_pDirect2dFactory->CreateHwndRenderTarget(
 				D2D1::RenderTargetProperties(),
 				D2D1::HwndRenderTargetProperties(getInstance().windowHandle, size),
-				&getInstance().m_pRenderTarget);
-
-			getInstance().m_pRenderTarget->CreateSolidColorBrush(
-				D2D1::ColorF(D2D1::ColorF::LightSlateGray),
-				&getInstance().m_pLightSlateGrayBrush);
-			
-			getInstance().m_pRenderTarget->CreateSolidColorBrush(
-				D2D1::ColorF(D2D1::ColorF::CornflowerBlue),
-				&getInstance().m_pCornflowerBlueBrush);
+				&getInstance().m_pRenderTarget
+			);
 		}
-
-		static void Render();
 
 		static void OnResize(UINT width, UINT height);
 
@@ -101,17 +123,11 @@ namespace gameApp {
 			if (!getInstance().m_pRenderTarget) {
 				getInstance().m_pRenderTarget->Release();
 			}
-			if (!getInstance().m_pLightSlateGrayBrush) {
-				getInstance().m_pLightSlateGrayBrush->Release();
-			}
-			if (!getInstance().m_pCornflowerBlueBrush) {
-				getInstance().m_pCornflowerBlueBrush->Release();
-			}
 		}
 
-		static void DrawRect(const struct RectFloat& rect, unsigned int hex, float alpha);
+		static void DrawRect(const struct RectFloat& rect, unsigned int hex, float alpha, const struct TransformationList &transformations);
 		
-		static void FillRect(const struct RectFloat& rect, unsigned int hex, float alpha);
+		static void FillRect(const struct RectFloat& rect, unsigned int hex, float alpha, const struct TransformationList& transformations);
 
 		static void BeginDraw();
 
@@ -121,7 +137,7 @@ namespace gameApp {
 
 		static WindowSize GetWindowSize();
 
-		static void DrawLine(float x0, float y0, float x1, float y1, unsigned int hex, float alpha, float width);
+		static void DrawLine(float x0, float y0, float x1, float y1, unsigned int hex, float alpha, float width, const struct TransformationList& transformations);
 
 	};
 }

@@ -4,15 +4,20 @@
 namespace gameApp {
     void RenderDirect2D::BeginDraw() {
         getInstance().createDeviceResources();
+        getInstance().m_pRenderTarget->GetTransform(&getInstance().prevTransform);
         getInstance().m_pRenderTarget->BeginDraw();
     }
 
     void RenderDirect2D::EndDraw() {
-        getInstance().m_pRenderTarget->EndDraw();
-        DiscardDeviceResources();
+        HRESULT hres = getInstance().m_pRenderTarget->EndDraw();
+        if (hres == D2DERR_RECREATE_TARGET) {
+            DiscardDeviceResources();
+        }
+        getInstance().ResetTransformation();
+        
     }
 
-    void RenderDirect2D::ClearWindow(unsigned int color = 0xFFFFFFFF) {
+    void RenderDirect2D::ClearWindow(unsigned int color = 0x7FFFFFFF) {
         getInstance().m_pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
         getInstance().m_pRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF(color)));
     }
@@ -23,13 +28,15 @@ namespace gameApp {
          return { window.width, window.height };
     }
 
-    void RenderDirect2D::DrawLine(float x0, float y0, float x1, float y1, unsigned int hex, float alpha, float width) {
+    void RenderDirect2D::DrawLine(float x0, float y0, float x1, float y1, unsigned int hex, float alpha, float width, const struct TransformationList& transformations) {
         ID2D1SolidColorBrush* brush = NULL;
 
         getInstance().m_pRenderTarget->CreateSolidColorBrush(
             D2D1::ColorF(D2D1::ColorF(hex, alpha)),
             &brush);
 
+        getInstance().setTransformation(transformations);
+        
         getInstance().m_pRenderTarget->DrawLine(
             D2D1::Point2F(x0, y0),
             D2D1::Point2F(x1, y1),
@@ -38,73 +45,52 @@ namespace gameApp {
         );
 
         brush->Release();
+        ResetTransformation();
     }
 
-	void RenderDirect2D::Render() {
-        BeginDraw();
-        ClearWindow();
+    void RenderDirect2D::setTransformation(const struct TransformationList& transformations) {
+        D2D1_MATRIX_3X2_F transform = getInstance().prevTransform;
+        for (unsigned int i = 0; i < transformations.length; i++) {
+            if (transformations.transformations[i].option > 3) {
+                continue;
+            }
+            switch (transformations.transformations[i].option) {
+            case 0:
+                transform = transform * D2D1::Matrix3x2F::Rotation(
+                    transformations.transformations[i].param1,
+                    D2D1::Point2F(transformations.transformations[i].x, transformations.transformations[i].y)
+                );
+                continue;
+            case 1:
+                transform = transform * D2D1::Matrix3x2F::Scale(
+                    transformations.transformations[i].param1,
+                    transformations.transformations[i].param2,
+                    D2D1::Point2F(transformations.transformations[i].x, transformations.transformations[i].y)
+                );
+                continue;
 
-        WindowSize rtSize = GetWindowSize();
+            case 2:
+                transform = transform * D2D1::Matrix3x2F::Skew(
+                    transformations.transformations[i].param1,
+                    transformations.transformations[i].param2,
+                    D2D1::Point2F(transformations.transformations[i].x, transformations.transformations[i].y)
+                );
+                continue;
 
-        // Draw a grid background.
-        int width = static_cast<int>(rtSize.width);
-        int height = static_cast<int>(rtSize.height);
+            case 3:
+                transform = transform * D2D1::Matrix3x2F::Translation(
+                    transformations.transformations[i].param1,
+                    transformations.transformations[i].param2
+                );
+                continue;
 
-        for (int x = 0; x < width; x += 10)
-        {
-            DrawLine(x, 0.f, x, rtSize.height, 0x778899, 1.f, 0.5f);
-            /*getInstance().m_pRenderTarget->DrawLine(
-                D2D1::Point2F(static_cast<FLOAT>(x), 0.0f),
-                D2D1::Point2F(static_cast<FLOAT>(x), rtSize.height),
-                getInstance().m_pLightSlateGrayBrush,
-                0.5f
-            );*/
+            default:
+                continue;
+            }
         }
 
-        for (int y = 0; y < height; y += 10)
-        {
-            DrawLine(0.f, y, rtSize.width, y, 0x778899, 1.f, 0.5f);
-
-            /*getInstance().m_pRenderTarget->DrawLine(
-                D2D1::Point2F(0.0f, static_cast<FLOAT>(y)),
-                D2D1::Point2F(rtSize.width, static_cast<FLOAT>(y)),
-                getInstance().m_pLightSlateGrayBrush,
-                0.5f
-            );*/
-        }
-
-        struct RectFloat rect = { rtSize.width / 2 - 50.0f, rtSize.height / 2 - 50.0f, 100.0f, 100.0f };
-
-
-        // Draw two rectangles.
-        D2D1_RECT_F rectangle1 = D2D1::RectF(
-            rtSize.width / 2 - 50.0f,
-            rtSize.height / 2 - 50.0f,
-            rtSize.width / 2 + 50.0f,
-            rtSize.height / 2 + 50.0f
-        );
-
-        //D2D1_RECT_F rectangle2 = D2D1::RectF(
-        //    rtSize.width / 2 - 100.0f,
-        //    rtSize.height / 2 - 100.0f,
-        //    rtSize.width / 2 + 100.0f,
-        //    rtSize.height / 2 + 100.0f
-        //);
-
-        // Draw a filled rectangle.
-        //getInstance().m_pRenderTarget->FillRectangle(&rectangle1, getInstance().m_pLightSlateGrayBrush);
-
-        FillRect(rect, 0x778899, 1.0f);
-
-        rect = { rtSize.width / 2 - 100.0f, rtSize.height / 2 - 100.0f, 200.0f, 200.0f };
-
-        DrawRect(rect, 0x4E9997, 1.0f);
-
-        // Draw the outline of a rectangle.
-        //getInstance().m_pRenderTarget->DrawRectangle(&rectangle2, getInstance().m_pCornflowerBlueBrush);
-
-        EndDraw();
-	}
+        getInstance().m_pRenderTarget->SetTransform(transform);
+    }
 
     void RenderDirect2D::OnResize(UINT width, UINT height) {
         if (getInstance().m_pRenderTarget) {
@@ -112,7 +98,7 @@ namespace gameApp {
         }
     }
 
-    void RenderDirect2D::DrawRect(const struct RectFloat& rect, unsigned int hex, float alpha){
+    void RenderDirect2D::DrawRect(const struct RectFloat& rect, unsigned int hex, float alpha, const struct TransformationList& transformations) {
         D2D1_RECT_F rectangle = D2D1::RectF(
             rect.x,
             rect.y,
@@ -126,13 +112,16 @@ namespace gameApp {
             D2D1::ColorF(D2D1::ColorF(hex, alpha)),
             &brush);
 
+        getInstance().setTransformation(transformations);
+
         getInstance().m_pRenderTarget->DrawRectangle(&rectangle, brush);
 
         brush->Release();
+        ResetTransformation();
 
     }
-    
-    void RenderDirect2D::FillRect(const struct RectFloat& rect, unsigned int hex, float alpha) {
+
+    void RenderDirect2D::FillRect(const struct RectFloat& rect, unsigned int hex, float alpha, const struct TransformationList& transformations) {
         D2D1_RECT_F rectangle = D2D1::RectF(
             rect.x,
             rect.y,
@@ -142,14 +131,16 @@ namespace gameApp {
 
         ID2D1SolidColorBrush* brush = NULL;
 
-
         getInstance().m_pRenderTarget->CreateSolidColorBrush(
             D2D1::ColorF(D2D1::ColorF( hex, alpha )),
             &brush);
 
+        getInstance().setTransformation(transformations);
+
         getInstance().m_pRenderTarget->FillRectangle(&rectangle, brush);
 
         brush->Release();
-
+        ResetTransformation();
     }
 }
+

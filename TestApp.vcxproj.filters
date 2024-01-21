@@ -51,4 +51,11 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="demoDirect2D.mp4" />
+    <Media Include="demoGDI.mp4" />
+  </ItemGroup>
 </Project>

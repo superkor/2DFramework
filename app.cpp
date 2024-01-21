@@ -2,6 +2,85 @@
 #include <windows.h>
 #include <string>
 
+float angle = 0;
+float x = 0;
+bool direction = false;
+unsigned int color = 0;
+float time = 0;
+
+void Render(float delta) {
+	gameApp::RenderDirect2D::BeginDraw();
+	gameApp::RenderDirect2D::ClearWindow(0x7FFFFFFF);
+
+	struct gameApp::WindowSize rtSize = gameApp::RenderDirect2D::GetWindowSize();
+
+	// Draw a grid background.
+	int width = static_cast<int>(rtSize.width);
+	int height = static_cast<int>(rtSize.height);
+
+	for (int x = 0; x < width; x += 10)
+	{
+		gameApp::RenderDirect2D::DrawLine(x, 0.f, x, rtSize.height, 0x778899, 1.f, 0.5f, {});
+	}
+
+	for (int y = 0; y < height; y += 10)
+	{
+		gameApp::RenderDirect2D::DrawLine(0.f, y, rtSize.width, y, 0x778899, 1.f, 0.5f, {});
+	}
+
+	struct gameApp::RectFloat rect = { rtSize.width / 2 - 50.0f, rtSize.height / 2 - 50.0f, 100.0f, 100.0f };
+
+	struct gameApp::Transformation transformation[2] = { {0, rtSize.width / 2, rtSize.height / 2, 45.0f + angle}, { 3, 0, 0, x, 0 } };
+
+	struct gameApp::TransformationList list = {
+		transformation,
+		2
+	};
+
+	//gameApp::RenderDirect2D::FillRect(rect, 0x778899, 1.0f, {});
+	gameApp::RenderDirect2D::FillRect(rect, 0x778899, 1.0f, list);
+	gameApp::RenderDirect2D::FillRect(rect, color, 1.0f, {});
+
+	rect = { rtSize.width / 2 - 100.0f, rtSize.height / 2 - 100.0f, 200.0f, 200.0f };
+	transformation[0] = {0, rtSize.width / 2, rtSize.height / 2, 45.0f + angle};
+
+	list = {
+		transformation,
+		2
+	};
+
+	//gameApp::RenderDirect2D::DrawRect(rect, 0x4E9997, 1.0f, {});
+	
+	gameApp::RenderDirect2D::DrawRect(rect, 0x4E9997, 1.0f, list);
+	gameApp::RenderDirect2D::DrawRect(rect, color, 1.0f, {});
+
+	angle += 100.0f * delta;
+
+	if (x >= rtSize.width / 2) {
+		direction = true;
+	}
+	if (x <= -rtSize.width / 2) {
+		direction = false;
+	}
+
+	if (direction) {
+		x -= 100.0f * delta;
+	}
+	else {
+		x += 100.0f * delta;
+	}
+	time += delta;
+	if (time >= 0.5f) {
+		color += 1000000;
+		time = 0;
+	}
+	if (color == 0x7FFFFFFF) {
+		color = 0;
+	}
+	gameApp::RenderDirect2D::EndDraw();
+
+}
+
 appEntryPoint{
 
 	float x = 250.0f, y = 250.0f;
@@ -20,6 +99,9 @@ appEntryPoint{
 
 	float xShift = 0.0f, yShift = 0.0f;
 
+	static int frames = 0;
+	static float timePassed = 0.0f;
+
 	WINDOWPLACEMENT g_wpPrev = { sizeof(g_wpPrev) };
 
 	gameApp::Game::setGameUpdate([&](float delta) {
@@ -31,8 +113,6 @@ appEntryPoint{
 		//output fps
 
 
-		static int frames = 0;
-		static float timePassed = 0.0f;
 
 		//counts number of frames after a second passes
 		frames++;
@@ -44,9 +124,15 @@ appEntryPoint{
 
 			timePassed -= 1.0f;
 			frames = 0;
+
 		}
 
 		if (gameApp::Game::getInstance().getOption()) {
+			Render(delta);
+		}
+
+		if (gameApp::Game::getInstance().getOption()) {
+
 			return;
 		}
 		
@@ -217,8 +303,7 @@ appEntryPoint{
 
 	gameApp::Renderer::SetClearColor({200, 120, 45});
 
-	//gameApp::Game::start(0);
-	gameApp::Game::start(1);
+	gameApp::Game::start(0);
 
 	return 0;
 }

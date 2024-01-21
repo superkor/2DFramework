@@ -109,8 +109,10 @@ namespace gameApp {
 				else {
 					//Render Direct2D
 					//OutputDebugString(L"Draw Direct2D frame\n");
-					RenderDirect2D::Render();
-					RenderDirect2D::DiscardDeviceResources();
+					Game::getInstance().update(1.0f);
+					/*RenderDirect2D::BeginDraw();
+					RenderDirect2D::ClearWindow(0xFFFFFFFF);
+					RenderDirect2D::EndDraw();*/
 					ValidateRect(windowHandle, NULL);
 				}
 
@@ -216,8 +218,6 @@ namespace gameApp {
 
 
 			if (!renderOption) {
-
-
 				Renderer::clear();
 				getInstance().update(delta);
 
@@ -228,6 +228,7 @@ namespace gameApp {
 				Renderer::copyBufferToWindow(deviceContext, width, height);
 
 				ReleaseDC(windowHandle, deviceContext);
+
 			}
 
 			if (renderOption) {
