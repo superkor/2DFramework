@@ -148,8 +148,8 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <Media Include="demoDirect2D.mp4" />
-    <Media Include="demoGDI.mp4" />
+    <Media Include="Examples\demoDirect2D.mp4" />
+    <Media Include="Examples\demoGDI.mp4" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

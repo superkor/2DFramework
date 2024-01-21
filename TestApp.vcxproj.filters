@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Examples">
+      <UniqueIdentifier>{80d08431-f696-4c1b-b353-d746f5325a7b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="app.h">
@@ -55,7 +58,11 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <Media Include="demoDirect2D.mp4" />
-    <Media Include="demoGDI.mp4" />
+    <Media Include="Examples\demoDirect2D.mp4">
+      <Filter>Examples</Filter>
+    </Media>
+    <Media Include="Examples\demoGDI.mp4">
+      <Filter>Examples</Filter>
+    </Media>
   </ItemGroup>
 </Project>
